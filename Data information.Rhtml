@@ -1,0 +1,110 @@
+<br/>
+
+<p>Cardiovascular disease (CVD) is according to the World Healthy Organization (WHO) a leading cause of death globally. CVD covers a group of multiple disorders including coronary heart disease, heart failure, stroke and others. Several risk factors has been associated with increase likelihood of CVD. Those are unhealthy diet, use of tobacco and alcohol, increasing blood glucose, overweight and obesity. These are just some of the risk factors <a href="https://www.who.int/health-topics/cardiovascular-diseases#tab=tab_1">[1]</a>. In this shiny multiple variables and factors are investigated in relation to the knowledge of increasing risk of fatal CV outcome. 
+</p>
+
+
+
+<p>This shiny has gathered data from 3 different databases <a href="https://github.com/nyuvis/datasets/blob/master/heart/heart-disease.names">[1]</a> and from Kaggle <a href="https://www.kaggle.com/datasets/sulianova/cardiovascular-disease-dataset">[2]</a>:
+Hungarian Institute of Cardiology, Budapest, V.A. Medical Center, Long Beach, CA, University Hospital, Zurich, Switzerland and Cardiovascular Disease dataset.</p>
+
+
+<h4>Variables</h4>
+The data from Hungaria, Long Beach and Switzerland contained 76 variables, while the Kaggle dataset contained 12. They have all been preprocessed, cleaned and reduced in size by selecting the most important variables based on research. 
+The final variables are listed below. Some are only present in the large combined dataset since they are present in the Kaggle dataset only.
+
+<ul style="list-style-type:square">
+<li><b>id</b> Subject identification number </li>
+<li><b>age</b> Age in years </li>
+<li><b>sex</b> Sex of subject (0 = female, 1 = male) </li>
+<li><b>cp</b> Chest pain type </li>
+  <ul style="list-style-type:number">
+  <li> Typical angina </li>
+  <li> Atypical angina </li>
+  <li> Non-anginal pain </li>
+  <li> Asymptomatic </li>
+  </ul>
+<li><b>trestbps</b> Resting blood pressure in mmHg </li>    
+<li><b>chol</b> Serum cholesterol in mg/dl </li>
+<li><b>cigs</b> Amount of cigarets smokes per day </li>
+<li><b>fbs</b> Fasting blood sugar > 120 mg/dl (1 = true, 0 = false) </li>
+<li><b>cvdPresent</b> Diagnosis of heart disease (1 = true, 0 = false) </li>
+<li><b>datasetOrig</b> String determing the dataset origin of subject </li>
+<li><b>height</b> Height in centimeter </li>
+<li><b>weight</b> Body weight in kg </li>
+<li><b>bmi</b> Body mass index </li>
+<li><b>ap_hi</b> Systolic blood pressure </li>
+<li><b>ap_lo</b> Diastolic blood pressure </li>
+<li><b>ap_mean</b> Mean systolic blood pressure </li>
+</ul>
+
+
+<h3>Preprocessing</h3>
+<p>
+The large CVD dataset contains information about cholesterol using discrete values between 1-3 determing normal, above normal and well above normal level of serum cholesterol. To match this variable with the continuous serum cholesterol measurement column in the other datasets, the discrete <b>chol</b> column is modified. This is based on information from the Johns Hopkins medicine webpage <a href="https://www.hopkinsmedicine.org/health/treatment-tests-and-therapies/lipid-panel">[5]</a>.
+Normal level is defined as less than 200 mg/dl, above normal is ranging between 200 and 239 mg/dl and well above normal is a serum cholesterol level at or above 240 mg/dl. In R <b>chol</b> values has been replaces with normal distributed sample values in these ranges with maximum and minimum values possible to reach set to 400 and 0 based on visual exploration of data and outliers.
+</p>
+
+<p>Not only has variables been removed from data, but so is outliers from continuos variables. Removal of outliers for <b>trestbp</b> is done using standard deviation. The upper and lower boundaries of the measured resting blood pressure is found and data are remove if it's 3 or more standard deviations from the mean. (assume normal distribution of variable).</p>
+
+<p>
+The <b>height</b> and <b>weight</b> variable values has been kept if they were ranging between 119 and 211 cm and > 30 kg respectively.
+</p>
+ 
+<p>
+Outliers for <b>ap_hi</b> and <b>ap_lo</b> has been removed based on information from The American College of Cardiology/American Heart Association Guideline for the Prevention, Detection, Evaluation, and Management of High Blood Pressure in Adults <a href="https://www.cdc.gov/bloodpressure/about.htm">[5]</a>. Further the restriction of having a higher systolic than diastolic blood pressure is added for each subject.
+</p>
+
+
+<style>
+.tb tr {border-bottom: 1px solid #ddd; border-right: solid 1px #3F536B; border-left: solid 1px #3F536B; padding:10px; text-align:center}
+.tb tr:hover {background-color: #5B779A;}
+</style>
+
+<table class = "tb">
+  <caption>Table: Guidelines of blood pressure levels from the AACE.</caption>
+  <tr>
+    <th>Blood pressure</th>
+    <th>Diastolic [mmHg]</th>
+    <th>Systolic [mmHg]</th>
+  </tr>
+  <tr>
+    <td>Normal</td>
+    <td>> 80</td>
+    <td>> 120</td>
+  </tr>
+  <tr>
+    <td>Above normal</td>
+    <td>> 80</td>
+    <td>120-129</td>
+  </tr>
+  <tr>
+    <td>Well above normal</td>
+    <td><= 80</td>
+    <td><= 130</td>
+  </tr>
+</table>
+
+
+
+
+<h4>Risk factors and investigations</h4>
+<p>The variable <b>cp</b> is describing 4 different chest pain types. Angina is a symptom of coronary artery disease, while atypical angina is caused by either heart or lung conditions, i.e. may not be heart-related. Non-anginal pain is a symptom of many conditions ranging from gastrointestinal problem to psychiatric conditions. The asymptomatic angina is when having myocardial ischemias with absence of any symtpoms.</p>
+
+<div class="image">
+    <img src="CV-risk-factors.png", style = "width:50%">
+    <figcaption><b>Fig.1</b> - <i>Coronary Artery Disease and Angina risk factors, Dr Diana R Holding.</i><a href="https://www.drholdright.co.uk/coronary-heart-disease-and-angina/">[4]</a></figcaption>
+</div>
+
+
+<p>
+Some research has suggested that instead of looking at the total cholesterol, blood glucose could be an alternative in order for better risk prediction of CVD [4]. In the data collected the diagnosis of a heart disease for each subject is present. Hence this variable will be used in the <b>Modelling and predicting</b> tab of CVD or not.
+</p>
+
+<p>
+In this analysis it's wished to explain the occurence of CVD (<b>cvdPresent</b>) from the variables present in the preprocessed datasets. Multiple binary classifcation algorithms like K-Nearest Neighbours and Logistic regression will be implemented and validated based on accuracy and F1-score.
+</p>
+
+
+
+

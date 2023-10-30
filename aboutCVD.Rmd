@@ -1,0 +1,35 @@
+---
+title: "About CVD"
+author: "Cathrine Lind"
+date: '2023-10-04'
+output: html_document
+---
+
+### Cardiovascular disease
+
+Cardiovascular disease (CVD) is according to the World Healthy Organization (WHO) a leading cause of death globally. CVD covers a group of multiple disorders including coronary heart disease, heart failure, stroke and others. Several risk factors has been associated with increase likelihood of CVD. Those are unhealthy diet, use of tobacco and alcohol, increasing blood glucose, overweight and obesity. These are just some of the risk factors [[1]](https://www.who.int/health-topics/cardiovascular-diseases#tab=tab_1). In this shiny multiple variables and factors are investigated in relation to the knowledge of increasing risk of fatal CV outcome.  
+
+
+### Risk factors and investigations
+The variable **cp** is describing 4 different chest pain types. Angina is a symptom of coronary artery disease, while atypical angina is caused by either heart or lung conditions, i.e. may not be heart-related. Non-anginal pain is a symptom of many conditions ranging from gastrointestinal problem to psychiatric conditions. The asymptomatic angina is when having myocardial ischemia with absence of any symptoms.  
+
+Some research has suggested that instead of looking at the total cholesterol, blood glucose could be an alternative in order for better risk prediction of CVD [4]. In the data collected the diagnosis of a heart disease for each subject is present. Hence this variable will be used in the **Modelling and predicting** tab of CVD or not.  
+
+It's also known that the sex and age of patients is correlated to the development of cardiovascular diseases. Increasing age and being a male increases the risk of CVD. 
+Over time a high blood pressure can lead to damage of arteries. High levels of serum cholesterol also cause narrowing of the arteries. Such damage also increase risk of CVD.   
+The fasting blood sugar levels is also a good measure for how much damage the patients pancreas has obtained. High levels of fasting blood sugar is related to obesity, which is also known as a risk factor [[2]](https://pubmed.ncbi.nlm.nih.gov/28260748/). A high fasting blood sugar level can rise when the pancreas producing insulin, that allows the cells in the body to uptake sugar from the blood, to malfunction. Hence insulin is not responding to increasing blood sugar levels.  
+  
+
+#### Cardiovascular heart disease explained
+The Youtube account **Cognito** has made a video explaining the basic biological processed behind why people get heart disease and how it's treated today.
+<iframe width="630" height="355" src="https://www.youtube.com/embed/UN5BlPfMUkg?si=KlCOPSaeELA5vUvN" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowFullScreen="true" webkitallowfullscreen="true" mozallowfullscreen="true"></iframe>
+
+<!-- In this analysis it's wished to explain the occurrence of CVD (**cvdPresent**) from the variables present in the preprocessed datasets. Multiple binary classifcation algorithms like K-Nearest Neighbours and Logistic regression will be implemented and validated based on accuracy and F1-score. -->
+
+
+
+<!-- https://towardsdatascience.com/heart-disease-prediction-73468d630cfc -->
+
+#### Reference
+1. https://www.who.int/health-topics/cardiovascular-diseases#tab=tab_1
+2. https://pubmed.ncbi.nlm.nih.gov/28260748/

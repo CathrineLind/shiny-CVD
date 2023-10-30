@@ -1,0 +1,49 @@
+---
+title: "logistic regression"
+author: "Cathrine Lind"
+date: '2023-10-12'
+output: html_document
+---
+### Predicting cardiovascular disease
+
+In the 5 different datasets there is an unique variables reccur: **cvdPresent**. This binary variable explains whether or not each ID has recorded cardiovascular disease. It's wanted to see if we from the information lying in the other variables, can predict the **cvdPresent** value for mulitple ID's.  
+
+This is here logistic regression enters the image. This is a model often used for classification by estimating the probability of an event occurring (here cardiovascular disease or not). It outputs probabilities that is being converted to 0 or 1 is the probability is either below 0.5 or equal or above 0.5 respectively.  
+
+An example of how a logistic regression output can look and how the model works is seen in figure 6 and 7.
+
+<style>
+aside.figures {
+    overflow: hidden; /* only needed if floating the child elements instead of using inline-block */
+    align-items: center;
+    justify-content: center;
+    margin:auto;
+}
+aside.figures figure {
+    display: inline-block;
+}
+</style>
+
+<aside class="figures">
+<figure>
+<img src="logreg.png" alt="Image 6">
+<figcaption>Fig. 6 - <i>Example of logistic regression by Natassha<br> (https://www.natasshaselvaraj.com/logistic-regression-explained-in-7-minutes/).</i></figcaption>
+</figure>
+
+<figure>
+<img src="LogRegDia.png" alt="Image 7">
+<figcaption>Fig. 7 - <i>Logistic regression model with example of input of independent variables<br> and output of the dependent variable <b>cvdPresent</b>.</i></figcaption>
+</figure>
+</aside>
+
+
+#### Logistic regression explained
+The Youtube account **StatQuest** with Josh Starmer has made a video explaining the concepts behind logistic regression and when it's applied.
+<iframe width="630" height="355" src="https://www.youtube.com/embed/yIYKR4sgzI8?si=7mY-zSuxaiDh9Ik5" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowFullScreen="true" webkitallowfullscreen="true" mozallowfullscreen="true"></iframe>
+
+
+### Logistic regression model
+In this application the output of the model will be a summary of the fitting of the model to the selected data. At first the model will be fitted using all available variables. To specify which variables the model should try to predict with - check the box(es) in the left tab.  
+
+Low `Pr(>|z|)` values means that this specific variable contains good information which is good at predicting the **cvdPresent** variable.  
+The accuracy explains how well the built model predicts the **cvdPresent** variable on unseen data. Hence the model is trained on 80% of the entire dataset and tested on 20% of the data being unseen. The higher the accuracy score is the better.

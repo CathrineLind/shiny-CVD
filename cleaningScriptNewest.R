@@ -1,0 +1,259 @@
+##### Preprocessing script of switzerland data & largest CVD data from Kaggle #####
+
+# Load packages
+library(tidyverse)
+setwd("C:/Users/catdu/OneDrive/DTU/11. semester/SpecialCourse")
+
+# Variable selection for further studies :--------------------------------------
+#     'important' variables according to studies
+# https://www-sciencedirect-com.proxy.findit.cvt.dk/science/article/pii/S2352914821000745
+# https://www.kaggle.com/datasets/aavigan/switzerland-clinic-heart-disease-dataset/code
+# https://github.com/nyuvis/datasets/blob/master/heart/heart-disease.names
+# https://link-springer-com.proxy.findit.cvt.dk/article/10.1186/1475-2840-12-24
+# https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9219571/
+
+
+
+# Database data ----------------------------------------------------------------
+
+# Variable names
+varNames <- c(V1 = "id",        V2 = "ccf",       V3 = "age",       V4 = "sex",       
+              V5 = "painloc",   V6 = "painexer",  V7 = "relrest",   V8 = "pncaden",  
+              V9 = "cp",        V10 = "trestbps", V11 = "htn",      V12 = "chol",    
+              V13 = "smoke",    V14 = "cigs",     V15 = "years",    V16 = "fbs",     
+              V17 = "dm",       V18 = "famhist",  V19 = "restecg",  V20 = "ekgmo", 
+              V21 = "ekgday",   V22 = "ekgyr",    V23 = "dig",      V24 = "prop",     
+              V25 = "nitr",     V26 = "pro",      V27 = "diuretic", V28 = "proto",   
+              V29 = "thaldur",  V30 = "thaltime", V31 = "met",      V32 = "thalac",  
+              V33 = "thalrest", V34 = "tpeakbps", V35 = "tpeakbpd", V36 = "dummy",   
+              V37 = "trestbpd", V38 = "exang",    V39 = "xhypo",    V40 = "oldpeak", 
+              V41 = "slope",    V42 = "rldv5",    V43 = "rldv5e",   V44 = "ca",       
+              V45 = "restckm2", V46 = "exerckm",  V47 = "restef",   V48 = "restwm",  
+              V49 = "exeref",   V50 = "exerwm",   V51 = "thal",     V52 = "thalsev", 
+              V53 = "thalpul",  V54 = "earlope",  V55 = "cmo",      V56 = "cday",    
+              V57 = "cyr",      V58 = "num",      V59 = "lmt",      V60 = "ladprox", 
+              V61 = "laddist",  V62 = "diag",     V63 = "cxmain",   V64 = "ramus",    
+              V65 = "om1",      V66 = "om2",      V67 = "rcaprox",  V68 = "rcadist", 
+              V69 = "lvx1",     V70 = "lvx2",     V71 = "lvx3",     V72 = "lvx4",    
+              V73 = "lvf",      V74 = "cathef",   V75 = "junk",     V76 = "name")
+
+# Switzerland ------------------------------------------------------------------
+switzerland <-  read.csv("switzerland.txt", 
+                         row.names = NULL, 
+                         sep = "\n", 
+                         header = F)
+
+# Split dataframe into vector
+switzerland <- switzerland %>%
+  pluck("V1") %>%
+  str_split(pattern = " ") %>%
+  unlist() %>%
+  na_if(-9) # replace -9 with NA
+
+
+# Convert vector into tibble + modify columns
+switzerland <- switzerland %>% 
+  matrix(ncol = length(varNames),
+         byrow = TRUE) %>% 
+  as_tibble() %>% 
+  plyr::rename(all_of(varNames)) %>%
+  mutate_if(is.character, as.numeric) %>%
+  mutate(datasetOrig = "switzerland",
+         sex = ifelse(sex == 0, 3, 2), 
+         sex = as.integer(ifelse(sex == 3, 1, 2)),
+         gender = ifelse(sex == 1, "female", "male"),
+         smoke = ifelse(cigs > 0, 1, 0),
+         num = ifelse(num != 0, 1, 0), 
+         id = as.integer(id),
+         age = as.integer(age),
+         fbsFactor = ifelse(fbs == 1, "> 120 mg/dl", 
+                            ifelse(fbs == 0, "=< 120 mg/dl", "unknown")),
+         cpFactor = ifelse(cp == 1, "Typical angina", 
+                           ifelse(cp == 2, "Atypical angina", 
+                                  ifelse(cp == 3, "Non-anginal pain", "Asymptomatic")))) %>% 
+  dplyr::rename(cvdPresent = "num") %>%
+  dplyr::select(id, age, sex, cp, trestbps, chol, smoke, fbs, cvdPresent, gender, fbsFactor, cpFactor) %>%
+  filter(between(trestbps, 
+                 mean(trestbps, na.rm = TRUE) - (3 * sd(trestbps, na.rm = TRUE)),
+                 mean(trestbps, na.rm = TRUE) + (3 * sd(trestbps, na.rm = TRUE))))
+
+
+
+# Hungarian --------------------------------------------------------------------
+hungarian <-  read.csv("hungarian.txt", 
+                       row.names = NULL, 
+                       sep = "\n", 
+                       header = F)
+
+# Split dataframe into vector
+hungarian <- hungarian %>%
+  pluck("V1") %>%
+  str_split(pattern = " ") %>%
+  unlist() %>%
+  na_if(-9) # replace -9 with NA
+
+# Convert vector into tibble + modify columns
+hungarian <- hungarian %>% 
+  matrix(ncol = length(varNames),
+         byrow = TRUE) %>% 
+  as_tibble() %>% 
+  plyr::rename(all_of(varNames)) %>%
+  mutate_if(is.character, as.numeric) %>%
+  mutate(datasetOrig = "hungarian",
+         sex = ifelse(sex == 0, 3, 2), 
+         sex = as.integer(ifelse(sex == 3, 1, 2)),
+         gender = ifelse(sex == 1, "female", "male"),
+         # fbs = ifelse(fbs == 0, 2, 1),
+         smoke = ifelse(cigs > 0, 1, 0),
+         num = ifelse(num != 0, 1, 0), #  present or not for CVD in num(diagnosis) 
+         id = as.integer(id),
+         age = as.integer(age),
+         fbsFactor = ifelse(fbs == 1, "> 120 mg/dl", ifelse(fbs == 0, "=< 120 mg/dl", "unknown")),
+         cpFactor = ifelse(cp == 1, "Typical angina", ifelse(cp == 2, "Atypical angina", ifelse(cp == 3, "Non-anginal pain", "Asymptomatic")))) %>% 
+  dplyr::rename(cvdPresent = "num") %>%
+  dplyr::select(id, age, sex, cp, trestbps, chol, smoke, fbs, cvdPresent, gender, fbsFactor, cpFactor) %>%
+  filter(between(trestbps, 
+                 mean(trestbps, na.rm = TRUE) - (3 * sd(trestbps, na.rm = TRUE)),
+                 mean(trestbps, na.rm = TRUE) + (3 * sd(trestbps, na.rm = TRUE))))
+
+
+
+# Long Beach -------------------------------------------------------------------
+longBeach <-  read.csv("long-beach-va.txt", 
+                       row.names = NULL, 
+                       sep = "\n", 
+                       header = F)
+
+# Split dataframe into vector
+longBeach <- longBeach %>%
+  pluck("V1") %>%
+  str_split(pattern = " ") %>%
+  unlist() %>%
+  na_if(-9) # replace -9 with NA
+
+# Convert vector into tibble + modify columns
+longBeach <- longBeach %>% 
+  matrix(ncol = length(varNames),
+         byrow = TRUE) %>% 
+  as_tibble() %>% 
+  plyr::rename(all_of(varNames)) %>%
+  mutate_if(is.character, as.numeric) %>%
+  mutate(datasetOrig = "longBeach",
+         sex = ifelse(sex == 0, 3, 2), 
+         sex = as.integer(ifelse(sex == 3, 1, 2)),
+         gender = ifelse(sex == 1, "female", "male"),
+         # fbs = ifelse(fbs == 0, 2, 1),
+         smoke = ifelse(cigs > 0, 1, 0),
+         num = ifelse(num != 0, 1, 0), # present or not for CVD in num(diagnosis) 
+         id = as.integer(id),
+         age = as.integer(age),
+         fbsFactor = ifelse(fbs == 1, "> 120 mg/dl", ifelse(fbs == 0, "=< 120 mg/dl", "unknown")),
+         cpFactor = ifelse(cp == 1, "Typical angina", ifelse(cp == 2, "Atypical angina", ifelse(cp == 3, "Non-anginal pain", "Asymptomatic")))) %>% 
+  dplyr::rename(cvdPresent = "num") %>%
+  dplyr::select(id, age, sex, cp, trestbps, chol, smoke, fbs, cvdPresent, gender, fbsFactor, cpFactor) %>%
+  filter(between(trestbps, 
+                 mean(trestbps, na.rm = TRUE) - (3 * sd(trestbps, na.rm = TRUE)),
+                 mean(trestbps, na.rm = TRUE) + (3 * sd(trestbps, na.rm = TRUE))))
+
+
+
+# Save database files ----------------------------------------------------------
+saveRDS(hungarian, "HungarianData1.rds")
+saveRDS(switzerland, "SwitzerlandData1.rds")
+saveRDS(longBeach, "LongBeachData.rds")
+
+
+
+
+# Joining datasets -------------------------------------------------------------
+# OBS: Makes no sense to make wider or longer since each row is one subject ID
+
+# Create database identifyer
+switzerland <- switzerland %>%
+  mutate(datasetOrig = "switzerland")
+hungarian <- hungarian %>%
+  mutate(datasetOrig = "hungarian")
+longBeach <- longBeach %>%
+  mutate(datasetOrig = "longBeach")
+
+
+# Stack dataframes
+combdata <- switzerland %>%
+  bind_rows(hungarian) %>%
+  bind_rows(longBeach)
+
+
+# Save combined file -----------------------------------------------------------
+saveRDS(combdata, "SwitzHungLongBeachData1.rds")
+
+
+
+
+# Cardiovascular Kaggle dataset ------------------------------------------------
+heartdisease <- read.csv("cardio_train.csv",
+                          row.names = NULL,
+                          sep = ";",
+                          header = T)
+
+# Rename columns to match with the other datasets
+heartdisease <- heartdisease %>%
+  tibble() %>%
+  dplyr::rename(#sex = "gender", 
+                chol = "cholesterol", 
+                cvdPresent = cardio) %>% # Normal level of chol (binary)
+  mutate_if(is.character, as.numeric) %>%
+  rowwise() %>%
+  mutate(sex = "gender",
+         chol = case_when(
+         chol == 1 ~ ceiling(runif(1, min = 0, max = 200)), # normal level
+         chol == 2 ~ ceiling(runif(1, min = 200, max = 239)), # above normal level
+         chol == 3 ~ ceiling(runif(1, min = 240, max = max(combdata$chol, na.rm = TRUE))) # well above normal
+  )) #https://my.clevelandclinic.org/health/articles/11920-cholesterol-numbers-what-do-they-mean
+
+
+# Modify columns
+heartdisease <- heartdisease %>%
+  dplyr::select(-c(gluc, smoke, active)) %>%
+  mutate(age = as.integer(ceiling(age/365)),
+         bmi = round(weight/((height/100)^2), 1),
+         ap_mean = round(ap_lo + 1/3*(ap_hi - ap_lo), 1), # mean systolic blood pressure 
+         gender = ifelse(sex == 1, "female", "male"),
+         datasetOrig = "CVD",
+         alco = as.factor(alco),
+         id = as.integer(id),
+         sex = as.integer(sex))  
+
+
+
+
+# Large dataset ----------------------------------------------------------------
+# Combine the heartdisease and database data
+largeCombData <- combdata %>%
+  bind_rows(heartdisease) %>%
+  arrange(age)
+
+
+# Modify columns
+largeCombDataClean <- largeCombData %>%
+  filter(ap_hi >= 90 & ap_hi <= 250,
+         ap_lo >= 40 & ap_lo <= 160, 
+         height > 120 & height < 210,
+         weight > 30,
+         ap_hi > ap_lo) %>%
+  dplyr::select(where(function(x) any(!is.na(x)))) # remove column with only NA in
+
+
+# Save combined file -----------------------------------------------------------
+saveRDS(largeCombDataClean, "mainData1.rds")
+
+
+
+# Difference in columns after removal of 'outliers'
+namesBefore = names(largeCombData)
+namesAfter = names(largeCombDataClean)
+cat("Removed columns when combined with large CVD data:\n", 
+    namesBefore[!namesBefore %in% namesAfter])
+
+
+
+

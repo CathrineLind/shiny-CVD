@@ -1,0 +1,39 @@
+---
+title: "knn explained"
+author: "Cathrine Lind"
+date: '2023-10-12'
+output: html_document
+---
+
+### Prediction of cardiovascular disease
+
+K-nearest neighbors (KNN) is a classification method. It works by finding the K nearest points in the training data and use their class to predict the classes of unseen testing data. The methods assumes that thing being near to each other is similar or related. The calculated distance is between points plotted on a graph. The distance between points is the Euclidian distance (see figure 8).  
+
+In this application the points plotted will be one variable against another. The K that gives the best accuracy for classifying the **cvdpresent** variable is printed, but you can choose any K as wanted.  
+
+In order to increase performance all data has been scaled so the algorithm will not be affected by large magnitude difference in variable values. This scaling will reduce the bias of being drawn towards the variables with higher magnitude such as **height** or serum cholesterol levels versus the categorical **cp** variable. For this modelling only three datasets are present: the Hungarian, the Long Beach VA and the small combined data.
+
+
+<style>
+aside.figures {
+    overflow: hidden; /* only needed if floating the child elements instead of using inline-block */
+    align-items: center;
+    justify-content: center;
+    margin:auto;
+}
+aside.figures figure {
+    display: inline-block;
+}
+</style>
+
+<aside class="figures">
+<figure>
+<img src="euclidian.png" alt="Image 8">
+<figcaption>Fig. 8 - <i>Calculation of Euclidian distance by Luigi Fiori (https://medium.com/@luigi.fiori.lf0303/distance-metrics-and-k-nearest-neighbor-knn-1b840969c0f4).</i></figcaption>
+</figure>
+</aside>
+
+
+#### K-nearest neighbors explained
+The Youtube account **StatQuest** with Josh Starmer has made a video explaining the concepts behind KNN and when it's applied.
+<iframe width="630" height="355" src="https://www.youtube.com/embed/HVXime0nQeI?si=AI9uSzOXVvYCzB6t" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowFullScreen="true" webkitallowfullscreen="true" mozallowfullscreen="true"></iframe>
