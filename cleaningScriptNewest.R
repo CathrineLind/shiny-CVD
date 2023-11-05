@@ -37,11 +37,13 @@ varNames <- c(V1 = "id",        V2 = "ccf",       V3 = "age",       V4 = "sex",
               V69 = "lvx1",     V70 = "lvx2",     V71 = "lvx3",     V72 = "lvx4",    
               V73 = "lvf",      V74 = "cathef",   V75 = "junk",     V76 = "name")
 
+
+
 # Switzerland ------------------------------------------------------------------
-switzerland <-  read.csv("switzerland.txt", 
-                         row.names = NULL, 
-                         sep = "\n", 
-                         header = F)
+switzerland <- read.csv("switzerland.txt", 
+                        row.names = NULL, 
+                        sep = "\n", 
+                        header = F)
 
 # Split dataframe into vector
 switzerland <- switzerland %>%
@@ -80,10 +82,10 @@ switzerland <- switzerland %>%
 
 
 # Hungarian --------------------------------------------------------------------
-hungarian <-  read.csv("hungarian.txt", 
-                       row.names = NULL, 
-                       sep = "\n", 
-                       header = F)
+hungarian <- read.csv("hungarian.txt", 
+                      row.names = NULL, 
+                      sep = "\n", 
+                      header = F)
 
 # Split dataframe into vector
 hungarian <- hungarian %>%
@@ -119,10 +121,10 @@ hungarian <- hungarian %>%
 
 
 # Long Beach -------------------------------------------------------------------
-longBeach <-  read.csv("long-beach-va.txt", 
-                       row.names = NULL, 
-                       sep = "\n", 
-                       header = F)
+longBeach <- read.csv("long-beach-va.txt", 
+                      row.names = NULL, 
+                      sep = "\n", 
+                      header = F)
 
 # Split dataframe into vector
 longBeach <- longBeach %>%
@@ -198,15 +200,14 @@ heartdisease <- read.csv("cardio_train.csv",
 # Rename columns to match with the other datasets
 heartdisease <- heartdisease %>%
   tibble() %>%
-  dplyr::rename(#sex = "gender", 
-                chol = "cholesterol", 
-                cvdPresent = cardio) %>% # Normal level of chol (binary)
+  dplyr::rename(chol = "cholesterol",     # Normal level of chol (binary)
+                cvdPresent = cardio) %>% 
   mutate_if(is.character, as.numeric) %>%
   rowwise() %>%
-  mutate(sex = "gender",
+  mutate(sex = gender,
          chol = case_when(
-         chol == 1 ~ ceiling(runif(1, min = 0, max = 200)), # normal level
-         chol == 2 ~ ceiling(runif(1, min = 200, max = 239)), # above normal level
+         chol == 1 ~ ceiling(runif(1, min = 0, max = 200)),                               # normal level
+         chol == 2 ~ ceiling(runif(1, min = 200, max = 239)),                             # above normal level
          chol == 3 ~ ceiling(runif(1, min = 240, max = max(combdata$chol, na.rm = TRUE))) # well above normal
   )) #https://my.clevelandclinic.org/health/articles/11920-cholesterol-numbers-what-do-they-mean
 

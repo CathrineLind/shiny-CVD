@@ -31,5 +31,7 @@ The Youtube account **Cognito** has made a video explaining the basic biological
 <!-- https://towardsdatascience.com/heart-disease-prediction-73468d630cfc -->
 
 #### Reference
-1. https://www.who.int/health-topics/cardiovascular-diseases#tab=tab_1
-2. https://pubmed.ncbi.nlm.nih.gov/28260748/
+<ol start="1">
+  <li><a href="https://www.who.int/health-topics/cardiovascular-diseases#tab=tab_1">https://www.who.int/health-topics/cardiovascular-diseases#tab=tab_1</a></li>
+  <li><a href="https://pubmed.ncbi.nlm.nih.gov/28260748/">https://pubmed.ncbi.nlm.nih.gov/28260748/</a></li>
+</ol>

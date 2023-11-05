@@ -58,6 +58,8 @@ After cleaning of the 4 data sets the Hungarian, Long Beach, Switzerland and Kag
   
   
 #### Reference
-3. https://github.com/nyuvis/datasets/blob/master/heart/heart-disease.names
-4. https://www.kaggle.com/datasets/sulianova/cardiovascular-disease-dataset
+<ol start="3">
+  <li><a href="https://github.com/nyuvis/datasets/blob/master/heart/heart-disease.names">https://github.com/nyuvis/datasets/blob/master/heart/heart-disease.names</a></li>
+  <li><a href="https://www.kaggle.com/datasets/sulianova/cardiovascular-disease-dataset">https://www.kaggle.com/datasets/sulianova/cardiovascular-disease-dataset</a></li>
+</ol>
 

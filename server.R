@@ -1,6 +1,6 @@
 ##### Server script #####
 
-datetime <- Sys.time()
+datetime <- Sys.Date()
 
 # Load data --------------------------------------------------------------------
 hungarian <- readRDS("HungarianData1.rds")
@@ -14,6 +14,8 @@ largeCombData <- readRDS("mainData1.rds")
 server <- function(input, output, session){
   
   # Chosen data ----------------------------------------------------------------
+  # NOTE: inputID is the UI must be unique, hence the dataset reactive is called 
+  #       4 times with different inputIDs
   datasetInput <- reactive({
     switch(input$dataFile,
            "Hungarian" = as.data.frame(hungarian),
@@ -22,35 +24,35 @@ server <- function(input, output, session){
            "Combined data (small)" = as.data.frame(combData),
            "Combined data (large)" = as.data.frame(largeCombData))
   })
-
+  
   # Reactive value for selected dataset in plot panel
   datasetInputPlot <- reactive({
-      switch(input$dataFilePlot,
-             "Hungarian" = as.data.frame(hungarian),
-             "Switzerland" = as.data.frame(switzerland),
-             "Long Beach VA" = as.data.frame(longBeach),
-             "Combined data (small)" = as.data.frame(combData),
-             "Combined data (large)" = as.data.frame(largeCombData))
+    switch(input$dataFilePlot,
+           "Hungarian" = as.data.frame(hungarian),
+           "Switzerland" = as.data.frame(switzerland),
+           "Long Beach VA" = as.data.frame(longBeach),
+           "Combined data (small)" = as.data.frame(combData),
+           "Combined data (large)" = as.data.frame(largeCombData))
   })
   
   # Reactive value for selected dataset in the model panel
   datasetInputModel <- reactive({
-      switch(input$dataFileModel,
-             "Hungarian"=as.data.frame(hungarian), 
-             "Switzerland"=as.data.frame(switzerland), 
-             "Long Beach VA"=as.data.frame(longBeach),
-             "Combined data (small)"=as.data.frame(combData),
-             "Combined data (large)"=as.data.frame(largeCombData))
+    switch(input$dataFileModel,
+           "Hungarian"=as.data.frame(hungarian), 
+           "Switzerland"=as.data.frame(switzerland), 
+           "Long Beach VA"=as.data.frame(longBeach),
+           "Combined data (small)"=as.data.frame(combData),
+           "Combined data (large)"=as.data.frame(largeCombData))
   })
-
+  
   # Reactive value for selected dataset in the model panel
   datasetInputModelKNN <- reactive({
-      switch(input$dataFileModelKNN,
-             "Hungarian"=as.data.frame(hungarian), 
-             # "Switzerland"=as.data.frame(switzerland),
-             "Long Beach VA"=as.data.frame(longBeach),
-             "Combined data (small)"=as.data.frame(combData))
-             # "Combined data (large)"=as.data.frame(largeCombData))
+    switch(input$dataFileModelKNN,
+           "Hungarian"=as.data.frame(hungarian), 
+           # "Switzerland"=as.data.frame(switzerland),
+           "Long Beach VA"=as.data.frame(longBeach),
+           "Combined data (small)"=as.data.frame(combData))
+    # "Combined data (large)"=as.data.frame(largeCombData))
   })
   
   # Render text to Data panel with unique ID values
@@ -105,7 +107,7 @@ server <- function(input, output, session){
   
   # Amount of NA in data
   output$NAtable <- renderDT(
-    datatable(datasetInput() %>% summarise_all(funs(sum(is.na(.)))), 
+    datatable(datasetInput() %>% summarise(across(everything(), ~ sum(is.na(.)))), #summarise_all(list(sum(is.na(.)))), 
               options = list(pageLength = 10,
                              dom = 't',
                              ordering = F,
@@ -114,8 +116,17 @@ server <- function(input, output, session){
                              columnDefs = list(list(className = 'dt-center',
                                                     targets = "_all"))),
               rownames = FALSE)
-              # caption = paste("Table: Amount of  in ", input$dataFile, ".", sep = "")
-    )
+    # caption = paste("Table: Amount of  in ", input$dataFile, ".", sep = "")
+  )
+  
+  # Amount of NA in data
+  
+  
+  observe({
+    input$separatorOwn
+    
+    if(nchar(input$separatorOwn) > 5) showNotification(paste0("Choose a shorter table separator than ", input$separatorOwn), type = "warning", duration = 3)
+  })
   
   
   # Reactive value for selected dataset when downloading ----
@@ -135,7 +146,8 @@ server <- function(input, output, session){
       paste0(input$dataFile, input$downloadType)},
     
     content = function(file){
-      separator = tableSeparator()
+      separator = ifelse(is.null(input$separatorOwn), tableSeparator(), input$separatorOwn)
+      # separator = tableSeparator()
       if(input$downloadType == ".csv") {
         if(is.null(separator)) write_tsv(datasetInput(), file) # NULL == '\t'
         else write.table(datasetInput(), file, row.names = FALSE, sep = separator)
@@ -169,7 +181,7 @@ server <- function(input, output, session){
     updateCheckboxGroupInput(session, "independentVars", choices = logRegChoices)
   })
   
- 
+  
   
   observe(({
     updateCheckboxGroupInput(session, "logScatter", choices = list("Log X", "Log Y"))
@@ -179,7 +191,32 @@ server <- function(input, output, session){
   observe(({
     updateCheckboxGroupInput(session, "logHist", choices = list("Left plot", "Right plot"))
   }))
-
+  
+  observe({
+    df = datasetInputPlot()
+    updateSelectInput(session, inputId = 'xcolHist', label = 'Left plot',
+                      choices = names(df), selected = names(df)[1])
+    updateSelectInput(session, inputId = 'ycolHist', label = 'Right plot',
+                      choices = names(df), selected = names(df)[2])
+    print(" ")
+  })
+  
+  observe({
+    df = datasetInputPlot()
+    updateSelectInput(session, inputId = 'xcolBox', label = 'Variabel',
+                      choices = names(df), selected = names(df)[1])
+    print(" ")
+  })
+  observe({
+    df = datasetInputPlot()
+    updateSelectInput(session, inputId = 'xcolScatter', label = 'X variable',
+                      choices = names(df), selected = names(df)[1])
+    updateSelectInput(session, inputId = 'ycolScatter', label = 'Y variable',
+                      choices = names(df), selected = names(df)[2])
+    print(" ")
+  })
+  
+  
   observe({
     df = datasetInputPlot()
     
@@ -210,16 +247,17 @@ server <- function(input, output, session){
       df = df %>% 
         dplyr::select(c(age, trestbps, chol))}
     
-    updateSelectInput(session, inputId = 'xcolBox', label = 'Variable',
+    updateSelectInput(session, inputId = 'xcolBox', label = 'Variabel',
                       choices = names(df), selected = names(df)[1]) #age
     
     updateSelectInput(session, inputId = 'color_scatter', label = 'Select color',
                       choices = c("black", "red", "blue", "green", "yellow"), selected = "blue") 
+    print(2)
   })
   
-
   
-
+  
+  
   observe({
     df = datasetInputPlot()
     
@@ -233,13 +271,14 @@ server <- function(input, output, session){
                       choices = catChoices, selected = catChoices[1])
   })
   
+  # Range of scatterplot
   getRangeMin <- reactive({
-    df = datasetInput()
+    df = datasetInputPlot()
     if(any(input$logScatter == "Log X")) min1 = round(min(log(df[, input$xcolScatter]), na.rm = TRUE), 2)
     else min1 = round(min(df[, input$xcolScatter], na.rm = TRUE), 2)
   })
   getRangeMax <- reactive({
-    df = datasetInput()
+    df = datasetInputPlot()
     if(any(input$logScatter == "Log X")) max1 = round(max(log(df[, input$xcolScatter]), na.rm = TRUE), 2)
     else max1 = round(max(df[, input$xcolScatter], na.rm = TRUE), 2)
   })
@@ -256,7 +295,7 @@ server <- function(input, output, session){
                 value = c(min1, 
                           max1)) 
   })
-
+  
   
   histogramPlot1 <- reactive({
     data = datasetInputPlot()
@@ -273,7 +312,7 @@ server <- function(input, output, session){
     if(!is.null(input$logHist)){
       if((input$logHist == "Left plot") || sum("Left plot" %in% input$logHist)) xColumn <- log(xColumn)}
     if(sum(is.infinite(xColumn)) > 0) showNotification(paste0("Log-transformation of the variable ", input$xcolHist, " is not optimal due to generation of infinite values.", type = "warning"))
-
+    
     
     bins <- if(any(is.infinite(c(min(xColumn, na.rm = TRUE), max(xColumn, na.rm = TRUE))))) c(0, 10) else seq(min(xColumn, na.rm = TRUE), max(xColumn, na.rm = TRUE), length.out = input$bins1 + 1)
     verticalLine <- ifelse(max(countMax) <= 1, FALSE, TRUE)
@@ -281,12 +320,11 @@ server <- function(input, output, session){
     
     # plot
     plot <- ggplot(data, aes(x = xColumn, 
-                             fill = facetColumn)) + # geom_bar() +
+                             fill = facetColumn)) + 
       geom_histogram(bins = length(bins),
                      color = "#112446",
-                     alpha = 0.5) +  #ifelse(!is.null(input$facetH1), as.factor(input$facetH1), "#5B779A")
-      labs(#title = paste("Barplot of", input$dataFilePlot, "dataset"),
-           fill = ifelse(input$facetH1 != "none", str_to_title(input$facetH1), "")) +
+                     alpha = 0.6) + 
+      labs(fill = ifelse(input$facetH1 != "none", str_to_title(input$facetH1), "")) +
       xlab(input$xcolHist) + 
       theme_minimal() +
       theme(axis.title = element_text(size = 16),
@@ -316,18 +354,18 @@ server <- function(input, output, session){
     if(!is.null(input$logHist)){
       if((input$logHist == "Right plot") || sum("Right plot" %in% input$logHist)) yColumn <- log(yColumn)}
     if(sum(is.infinite(yColumn)) > 0) showNotification(paste0("Log-transformation of the variable ", input$ycolHist, " is not optimal due to generation of infinite values.", type = "warning"))
-                                                       
+    
     bins <- if(any(is.infinite(c(min(yColumn, na.rm = TRUE), max(yColumn, na.rm = TRUE))))) c(0, 10) else seq(min(yColumn, na.rm = TRUE), max(yColumn, na.rm = TRUE), length.out = input$bins2 + 1)
     verticalLine <- if(max(countMax) <= 1) FALSE else TRUE
     if(length(unique(yColumn)) < 5) verticalLine = FALSE
-
+    
+    
     # plot
-    plot <- ggplot(data, aes(x = yColumn, fill = facetColumn)) + # geom_bar() +
+    plot <- ggplot(data, aes(x = yColumn, fill = facetColumn)) + 
       geom_histogram(bins = length(bins),
                      color = "#112446",
-                     alpha=0.5) + # fill = "#5B779A" 
-      labs(#title = paste("Barplot of", input$dataFilePlot, "dataset"),
-           fill = ifelse(input$facetH2 != "none", str_to_title(input$facetH2), "")) +
+                     alpha = 0.6) + 
+      labs(fill = ifelse(input$facetH2 != "none", str_to_title(input$facetH2), "")) +
       xlab(input$ycolHist) + 
       theme_minimal() + 
       theme(axis.title = element_text(size = 16),
@@ -344,11 +382,11 @@ server <- function(input, output, session){
   
   scatterPlot <- reactive({
     set.seed(1234)
+    
     data = datasetInputPlot()
     xColumn = data[, input$xcolScatter]
     yColumn = data[, input$ycolScatter]
-    
-    # Convert to log-scale
+
     # Convert to log-scale
     if(!is.null(input$logScatter)){
       if((input$logScatter == "Log X") || sum("Log X" %in% input$logScatter)) xColumn <- log(xColumn)
@@ -356,13 +394,12 @@ server <- function(input, output, session){
     
     scatterCol = ifelse(input$color_scatter == "red", "#C61D1F", ifelse(input$color_scatter == "blue", "#5B779A", ifelse(input$color_scatter == "green", "#3F6654", ifelse(input$color_scatter == "yellow", "#dec541", "black"))))
     
-    # plot
+    # Plot
     plot <- ggplot(data, aes(x = xColumn, y = yColumn)) +
-      geom_jitter(width = 0.2,
+      geom_jitter(width = ifelse(identical(xColumn, yColumn), 0, 0.2),
                   color = scatterCol,
                   size = 3) +
-      labs(#title = paste("Scatter plot of", input$dataFilePlot, "dataset"),
-           color = str_to_title(input$xcolScatter)) +
+      labs(color = str_to_title(input$xcolScatter)) +
       xlab(input$xcolScatter) + 
       ylab(input$ycolScatter) +
       xlim(input$range[1], input$range[2]) +
@@ -376,21 +413,33 @@ server <- function(input, output, session){
   observe({
     input$addScatter
   })
-  observe({
-    input$xcolBox
+  
+  output$boxSummary <- renderText({
+    data = datasetInputPlot()
+    yColumn = data[, input$xcolBox]
+    xColumn = data[, "cvdPresent"]
+    notPresent = sum(yColumn[which(xColumn == 0)], na.rm = 1)
+    isPresent = sum(yColumn[which(xColumn == 1)], na.rm = 1)
+    xColumn = ifelse(xColumn == 0, paste0("No (N=",  notPresent, ")"), paste0("Yes (N=",  isPresent, ")"))
+    
+    # Summary data
+    medianVals <- c(median(na.rm = 1, yColumn[which(xColumn == unique(xColumn)[1])]), median(na.rm = 1, yColumn[which(xColumn == unique(xColumn)[2])]))
+    if(length(medianVals[1]) == length(notPresent)) return(paste0("For ", input$xcolBox, " the median values for the presence or not or cardiovascular disease is ", medianVals[1], " and ", medianVals[2], "."))
+    else return(paste0("For ", input$xcolBox, " the median values for the presence or not or cardiovascular disease is ", medianVals[2], " and ", medianVals[1], "."))
   })
   
-  
-  # Box plot for ex. sex med 0 eller 1 viser ikke 0 da det forsvinder naar mansiger factor()
+  # Box plot 
   boxPlot <- reactive({
     data = datasetInputPlot()
-    xColumn = data[, input$xcolBox]
-    yColumn = data[, "cvdPresent"]
-    notPresent = sum(xColumn[which(yColumn == 0)])
-    isPresent = sum(xColumn[which(yColumn == 1)])
-    yColumn = ifelse(yColumn == 0, paste0("No (N=",  notPresent, ")"), paste0("Yes (N=",  isPresent, ")"))
+    yColumn = data[, input$xcolBox]
+    xColumn = data[, "cvdPresent"]
+    notPresent = length(yColumn[(xColumn == 0)])
+    isPresent = length(yColumn[(xColumn == 1)])
+    # notPresent = sum(yColumn[where(xColumn == 0)], na.rm = TRUE)
+    # isPresent = sum(yColumn[where(xColumn == 1)], na.rm = TRUE)
+    xColumn = ifelse(xColumn == 0, paste0("No (N=",  notPresent, ")"), paste0("Yes (N=",  isPresent, ")"))
     
-    plot <- ggplot(data, aes(x = yColumn, y = xColumn, group = yColumn)) +
+    plot <- ggplot(data, aes(x = xColumn, y = yColumn, group = xColumn)) +
       geom_boxplot(color = "#3F536B", fill = "#5B779A", alpha = 0.75, lwd = 0.8, 
                    outlier.shape = "+", outlier.color = "#3F6654", outlier.size = 5, outlier.alpha = 1) +
       theme_ipsum() +
@@ -402,10 +451,10 @@ server <- function(input, output, session){
       ylab(input$xcolBox) +
       xlab("Presence of cardiovascular disease")
     
-    if(input$addScatter) plot = plot + geom_jitter(color = "#112446", size=0.75, alpha=0.9)
+    if(input$addScatter) plot <- plot + geom_jitter(color = "#112446", size = 0.75, alpha = 0.9)
     print(plot)
   })
-
+  
   
   # Call the plot function and observe the variables chosen --------------------
   observeEvent(input$dataFilePlot,
@@ -415,7 +464,7 @@ server <- function(input, output, session){
   observeEvent(input$dataFilePlot,
                output$histogramPlot2 <- renderPlot({
                  histogramPlot2()
-                 }))
+               }))
   observeEvent(input$xcolHist,
                output$histogramPlot1 <- renderPlot({
                  histogramPlot1()
@@ -511,7 +560,7 @@ server <- function(input, output, session){
   
   
   
-
+  
   # Logistic regression -----------------------------------------------------
   model <- reactive({
     set.seed(1234)
@@ -536,7 +585,7 @@ server <- function(input, output, session){
     
     # Remove chol is variance is zero
     if(sd(na.omit(data$chol)) == 0) data <- data %>% dplyr::select(-chol)
-        
+    
     train <- data %>% dplyr::sample_frac(0.70)
     test <- dplyr::anti_join(data, train, by = 'id') 
     
@@ -598,9 +647,9 @@ server <- function(input, output, session){
       print(coef_summary)
     }
   })
-
   
-
+  
+  
   # KNN ---------------------------------------------------------------------
   observe({
     choices <- colnames(datasetInputModelKNN())
@@ -611,7 +660,7 @@ server <- function(input, output, session){
     else{
       if("datasetOrig" %in% choices) choices = choices[!choices %in% c("id", "cvdPresent", "gender", "fbsFactor", "cpFactor", "datasetOrig", "smoke", "sex")]
       else  choices = choices[!choices %in% c("id", "cvdPresent", "gender", "fbsFactor", "cpFactor", "smoke", "sex")]}
-
+    
     updateSelectInput(session, "targetVar1", choices = choices, selected = choices[1])
     updateSelectInput(session, "targetVar2", choices = choices, selected = choices[2])
     
@@ -623,20 +672,27 @@ server <- function(input, output, session){
       if((input$targetVar1 == input$targetVar2) & (input$targetVar1 != "")){
         showNotification("The selected variables cannot be the same. Select two different.", type = "error")}}
   })
-
+  
   
   observe({
-    input$k
     
-    if(input$k > 30) {
+    if(is.na(input$k)) {
+      showNotification("K-values of 0 is not an option. Setting K to 1.", type = "warning")
+      updateNumericInput(session, "k", value = 1)
+    }
+    else if(input$k > 30) {
       showNotification("K-values above 30 is not supported in this shiny app.", type = "warning")
       updateNumericInput(session, "k", value = 30)}
+    # even <- input$k %% 2 == 0
+    # shinyFeedback::feedbackWarning("k", !even, "Please select an even number")
+    
+    input$k
   })
   
   
   
   knnModel <- reactive({
-  
+    
     set.seed(1234)
     
     # Split data into train and test ---------------------------------
@@ -658,7 +714,7 @@ server <- function(input, output, session){
     
     train <- data %>% dplyr::sample_frac(0.80)
     test <- dplyr::anti_join(data, train, by = 'id') 
-   
+    
     # Normalize makes a difference
     cvdTrain <- train %>% dplyr::select(cvdPresent) 
     cvdTest <- test %>% dplyr::select(cvdPresent)
@@ -667,7 +723,7 @@ server <- function(input, output, session){
     cholVarTest = test %>% dplyr::select(chol) %>% scale() %>% as.data.frame()
     train = train %>% dplyr::select(-c(id, cvdPresent, chol)) %>% scale() %>% as.data.frame() %>% bind_cols(c(cholVarTrain, cvdTrain))
     test = test %>% dplyr::select(-c(id, cvdPresent, chol)) %>% scale() %>% as.data.frame() %>% bind_cols(c(cholVarTest, cvdTest))
-
+    
     # Prediction error on training data set for K = 1 to 30
     error.train <- replicate(0, 30)
     for(k in 1:30) {
@@ -694,7 +750,7 @@ server <- function(input, output, session){
                 error.test = error.test,
                 accuracy = acc))
   })
-
+  
   
   knnErrorPlot <- reactive({
     if(!is.null(knnModel())){
@@ -742,12 +798,12 @@ server <- function(input, output, session){
       K.train = c(1:30)[which.min(error.train)]
       
       HTML(paste0("The best K-value to classify the presence of cardiovascular disease based on the selected variables: ", 
-          input$targetVar1, " and ", input$targetVar2, ", is ", K.test, ". By choosing this K this would give an accuracy (when run of training data (80%)) of ", round(error.rates$accuracy, 2), ".", sep = ""))
+                  input$targetVar1, " and ", input$targetVar2, ", is ", K.test, ". By choosing this K this gives an accuracy (when run of training data (80%)) of ", round(error.rates$accuracy, 2), ".", sep = ""))
     }
   })
   
-
-    
+  
+  
   ## KNN plot
   knnPlot1 <- reactive({
     set.seed(1234)
@@ -779,6 +835,7 @@ server <- function(input, output, session){
     test = test %>% dplyr::select(-c(id, cvdPresent)) %>% scale() %>% as.data.frame() %>% bind_cols(cvdTest)
     
     k = input$k
+    if(is.na(k)) k = 1
     predCVD <- knn(train = train[, c(input$targetVar1, input$targetVar2)], test = test[, c(input$targetVar1, input$targetVar2)], cl = cvdTrain$cvdPresent, k)
     result <- cbind(test[, c(input$targetVar1, input$targetVar2)], predCVD)
     combinetest <- cbind(test[, c(input$targetVar1, input$targetVar2)], cvdTest)
@@ -788,7 +845,7 @@ server <- function(input, output, session){
     accuracy <- function(x){sum(diag(x)/(sum(rowSums(x))))} #* 100
     acc = accuracy(cm)
     print(acc)
-
+    
     # The plot
     plot <- ggplot(as.data.frame(result), aes(x = result[, 1], y = result[, 2], color = as.factor(predCVD))) +
       geom_point(size = 3) + 
@@ -836,6 +893,7 @@ server <- function(input, output, session){
     test = test %>% dplyr::select(-c(id, cvdPresent)) %>% scale() %>% as.data.frame() %>% bind_cols(cvdTest)
     
     k = input$k
+    if(is.na(k)) k = 1
     predCVD <- knn(train = train[, c(input$targetVar1, input$targetVar2)], test = test[, c(input$targetVar1, input$targetVar2)], cl = cvdTrain$cvdPresent, k)
     result <- cbind(test[, c(input$targetVar1, input$targetVar2)], predCVD)
     combinetest <- cbind(test[, c(input$targetVar1, input$targetVar2)], cvdTest)
@@ -858,8 +916,8 @@ server <- function(input, output, session){
     if(!is.null(knnPlot1())){
       knnplot1 <- knnPlot1()
       print(knnplot1$plot)
-      }
-    })
+    }
+  })
   output$knnPredictionPlot2 = renderPlot({if(!is.null(knnPlot2())) knnPlot2()})
   
   output$accuracyTestKNN <- renderText({

@@ -11,13 +11,13 @@ library(tools)
 library(dplyr, warn.conflicts = FALSE)
 library(ggforce)
 library(ggpubr)
+library(plyr)
 library(gridExtra)
 library(data.table)
 library(shinyBS)
 library(hrbrthemes) # ipsum theme for boxplot
 library(stringr)
 library(xfun)
-# library(RColorBrewer)
 library(ggridges)
 library(class)
 library(fresh)
@@ -33,8 +33,6 @@ switzerland <- readRDS("SwitzerlandData1.rds")
 longBeach <- readRDS("LongBeachData1.rds")
 combData <- readRDS("SwitzHungLongBeachData1.rds")
 largeCombData <- readRDS("mainData1.rds")
-# vars = setdiff(names(largeCombData), "Species")
-
 
 # Styling ----------------------------------------------------------------------
 mainStyling <- "font-size:15px; font-family:'sans-serif'; "
@@ -121,15 +119,16 @@ ui <- tagList(
                                                   selected = ".csv"),
                                      helpText("NOTE: Separators for .rds files are needless."),
                                      selectInput("separator", "Table separator", choices = c("Tab (\\t)", "Comma (,)", "Semi-colon (;)", "Colon (:)", "Space"), selected = "Tab (\\t)"), 
+                                     textInput("separatorOwn", "Add your own table separator"),
                                      downloadButton("downloadTable", "Download", class = "btn-primary", style = downloadStyling),
-                                     helpText("NOTE: In the large combined data, columns with NAs only is removed.")),
+                                     helpText("NOTE: In the large combined data, columns with NAs only are removed.")),
                       mainPanel(width = 10,
                                 h3("Data"),
                                 p(HTML(paste0("In this tab, the chosen data in the left sidepanel is presented by a table. 
                                   The table contains multiple variables as described in <em>About</em> tab. 
                                   It possible to sort the tables by a column from pressing the arrows aside each variable.
                                   The table shows a pre-processed version of the selected data. The steps made can be seen in the <em>About</em> tab as well.
-                                  There is ", textOutput("uniqueID", inline=T), " unique patients in this data. <br/>
+                                  There is ", textOutput("uniqueID", inline = T), " unique patients in this data. <br/>
                                   To download the table press the download button in the left panel. If wanted the separator of the table when exported can be modifyed."))),
                                 DTOutput("table"),
                                 br(),
@@ -166,7 +165,7 @@ ui <- tagList(
                                                                      inline = TRUE),
                                                   sliderInput("bins1", HTML("Number of bins<br/>(left plot)"), min = 1, max = 50, value = 30),
                                                   sliderInput("bins2", HTML("Number of bins<br/>(right plot)"), min = 1, max = 50, value = 30)),
-                                              
+
                                               # Sidebar panel for scatter plot
                                               conditionalPanel(condition = "input.conditionedPanel == 'Scatter plot'",
                                                                print(tags$strong("Select variables")),
@@ -189,7 +188,7 @@ ui <- tagList(
                                               # Side bar panel for boxplot
                                               conditionalPanel(condition = "input.conditionedPanel == 'Box plot'",
                                                                # print(tags$strong("Select variable")),
-                                                               selectInput('xcolBox', 'Variable', ""),
+                                                               selectInput('xcolBox', 'Variabel', ""),
                                                                checkboxInput('addScatter', label = "Add scatter to plot", value = FALSE, width = '100%'),
                                                                # print(tags$strong("Download plot")),
                                                                radioButtons("extensionB", "Select File Extension",
@@ -208,7 +207,8 @@ ui <- tagList(
                                                                      For continuous variables a vertical striped line is visual to the plot(s). This represents the mean of the selected variable.
                                                                      Lastly it's possible to color the variable values by a categorical variable such as the presence of cardiovascular disease <b>cvdPresent</b>.")),
                                                               fluidRow(
-                                                                column(6, id = "histogram", 
+                                                                column(6, 
+                                                                       id = "histogram", 
                                                                        bsTooltip(id = "histogram",
                                                                                  title = "histogram1", 
                                                                                  trigger = "hover", 
@@ -224,7 +224,9 @@ ui <- tagList(
                                                                                     choices = c("png", "pdf", "jpeg"),
                                                                                     selected = "png",
                                                                                     inline = TRUE),
-                                                                       downloadButton("downloadPlothist1", HTML("Download\nplot"), class = "btn-primary")),
+                                                                       downloadButton("downloadPlothist1", 
+                                                                                      HTML("Download\nplot"), 
+                                                                                      class = "btn-primary")),
                                                                 column(6, 
                                                                        id = "histogram2", 
                                                                        bsTooltip(id = "histogram2", 
@@ -242,7 +244,9 @@ ui <- tagList(
                                                                                     choices = c("png", "pdf", "jpeg"),
                                                                                     selected = "png",
                                                                                     inline = TRUE),
-                                                                       downloadButton("downloadPlothist2", HTML("Download\nplot"), class = "btn-primary")))),
+                                                                       downloadButton("downloadPlothist2", 
+                                                                                      HTML("Download\nplot"), 
+                                                                                      class = "btn-primary")))),
                                                      
                                                      # Scatter plot
                                                      tabPanel("Scatter plot", 
@@ -255,6 +259,8 @@ ui <- tagList(
                                                                         placement = "bottom"),
                                                               br(),
                                                               plotOutput("scatter")),
+                                                              # plotOutput("scatter", brush = "plot_brush"),
+                                                              # tableOutput("ss")),
                                                      
                                                      # Boxplot
                                                      tabPanel("Box plot", 
@@ -268,7 +274,9 @@ ui <- tagList(
                                                                         trigger = "hover", 
                                                                         placement = "bottom"),
                                                               br(),
-                                                              plotOutput("box"))))))),
+                                                              plotOutput("box"),
+                                                              p(HTML(paste0(textOutput("boxSummary", inline = T))))
+                                                              )))))),
                       
              
              
@@ -311,7 +319,8 @@ ui <- tagList(
                                               # Logistic regression
                                               tabPanel("Logistic regression", 
                                                        fluidRow(
-                                                         column(12, id = "logreg", 
+                                                         column(12, 
+                                                                id = "logreg", 
                                                                 bsTooltip(id = "logreg", 
                                                                           title = "logisticRegression", 
                                                                           trigger = "hover", 

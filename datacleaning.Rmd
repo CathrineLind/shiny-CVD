@@ -80,6 +80,25 @@ The Kaggle data originally contains 12 variables, where as some recur in the dat
 
 Two variables are added: **bmi** and **ap_mean**. **bmi** represents the Body Mass Index (BMI) and is calculated from the **height** and **weight** variables. The formula for BMI: *BMI=(weight [kg])/(height [m])^2* 
 <!-- $$BMI = \frac{weight [kg]}{(height [m])^{2}}$$.   -->
+The final variables in this dataset:
+
+<ul style="list-style-type:number">
+<li><b>id</b> Patient identification number </li>
+<li><b>age</b> Age in years </li>
+<li><b>sex</b> Sex of patient (1 = female, 2 = male) </li>
+<li><b>gender</b> Sex of patient ("female", "male") </li>
+<li><b>height</b> Height of patient in cm </li>
+<li><b>weight</b> Weight of patient in kg </li>
+<li><b>ap_hi</b> Systolic blood pressure in mmHg </li>
+<li><b>ap_lo</b> Diastolic blood pressure in mmHg </li>
+<li><b>ap_mean</b> Mean systolic blood pressure in mmHg </li>
+<li><b>chol</b> Serum cholesterol in mg/dl </li>
+<li><b>alco</b> Alcohol intake (1 = true, 0 = false) </li>
+<li><b>bmi</b> Body Mass Index </li>
+<li><b>cvdPresent</b> Diagnosis of heart disease (1 = true, 0 = false) </li>
+</ul>
+
+
 
 The **height** and **weight** variable values has been kept if they were ranging between 119 and 211 cm and > 30 kg respectively.  
  
@@ -102,6 +121,8 @@ Further the restriction of having a higher systolic than diastolic blood pressur
   
     
 #### Reference
-5. https://archive.ics.uci.edu/dataset/45/heart+disease
-6. https://www.sciencedirect.com/science/article/pii/0002914989905249
-7. https://www.cdc.gov/bloodpressure/about.htm 
+<ol start="5">
+  <li><a href="https://archive.ics.uci.edu/dataset/45/heart+disease">https://archive.ics.uci.edu/dataset/45/heart+disease</a></li>
+  <li><a href="ttps://www.sciencedirect.com/science/article/pii/0002914989905249">ttps://www.sciencedirect.com/science/article/pii/0002914989905249</a></li>
+  <li><a href="https://www.cdc.gov/bloodpressure/about.htm">https://www.cdc.gov/bloodpressure/about.htm</a></li>
+</ol>

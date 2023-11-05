@@ -45,5 +45,6 @@ The Youtube account **StatQuest** with Josh Starmer has made a video explaining 
 ### Logistic regression model
 In this application the output of the model will be a summary of the fitting of the model to the selected data. At first the model will be fitted using all available variables. To specify which variables the model should try to predict with - check the box(es) in the left tab.  
 
-Low `Pr(>|z|)` values means that this specific variable contains good information which is good at predicting the **cvdPresent** variable.  
-The accuracy explains how well the built model predicts the **cvdPresent** variable on unseen data. Hence the model is trained on 80% of the entire dataset and tested on 20% of the data being unseen. The higher the accuracy score is the better.
+Low `Pr(>|z|)` values means that this specific variable contains information which is good to add to the model when predicting the **cvdPresent** variable.  
+The accuracy explains how well the built model predicts the **cvdPresent** variable on unseen data. Hence the model is trained on 80% of the entire dataset and tested on 20% of the data being unseen. The higher the accuracy score is the better.  
+The `Estimate` values explains how much a one unit change in the specific variables influences the odds of presence of cardiovascular disease versus no presence of cardiovascular disease.
